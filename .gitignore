@@ -6,3 +6,16 @@
 
 # R data files from past sessions
 .Rdata
+
+# R data files from past sessions
+.Rdata
+.Rproj.user
+*.Rproj
+
+# compressed/zip files
+*.zip
+*.BZ2
+# to stay local
+Notes.txt
+cache*
+*.html
