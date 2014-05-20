@@ -16,7 +16,7 @@
 
 # compressed/zip files
 *.zip
-*.BZ2
+.BZ2
 
 # to stay local
 *.txt
