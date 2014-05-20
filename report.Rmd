@@ -1,13 +1,19 @@
 Title
 ========================================================
 ```{r workset up, echo=FALSE}
-opts_chunk$set(tidy=FALSE,cache=TRUE,cache.path="./cache/")
+opts_chunk$set(tidy=FALSE,cache.path="./cache/")
 ```
 Synopsis:
 
 Data Processing
-```{r data input}
+```{r data input, cache=TRUE}
 data <- read.csv("data/repdata-data-StormData.csv.bz2")
+```
+
+```{r building working data, cache=TRUE}
+data$BGN_DATE <- as.Date(data$BGN_DATE,  "%m/%d/%Y")
+work <- subset(data, BGN_DATE > as.Date("1991-01-01", "%Y-%m-%d"))
+nrow(work)
 ```
 Results
 
