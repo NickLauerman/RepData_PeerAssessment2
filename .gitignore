@@ -15,7 +15,8 @@
 # compressed/zip files
 *.zip
 *.BZ2
+
 # to stay local
-Notes.txt
+*.txt
 cache*
 *.html
