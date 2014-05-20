@@ -1,16 +1,18 @@
 Title
 ========================================================
-```{r workset up, echo=FALSE}
-opts_chunk$set(tidy=FALSE,cache.path="./cache/")
-```
+
+
 Synopsis:
 
 Data Processing
-```{r data input, cache=TRUE}
+
+```r
 data <- read.csv("data/repdata-data-StormData.csv.bz2",
                  stringsAsFactors = FALSE)
 ```
-```{r cleaning data, cache=TRUE}
+
+
+```r
 names(data) <- tolower(names(data))
 data$bgn_date <- as.Date(data$bgn_date,  "%m/%d/%Y")
 data$evtype <- as.factor(data$evtype)
@@ -65,7 +67,9 @@ rm(temp)
 ```
 
 
-```{r building working data, cache=TRUE}
+
+
+```r
 health.impact <- subset(data, 
                         ((health >0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                          select=c(bgn_date,evtype,health))
@@ -73,6 +77,7 @@ financial.impact  <- subset(data,
                             ((totalcash > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                             select = c(bgn_date, evtype, propcash, cropcash, totalcash))
 ```
+
 
 
 Results
