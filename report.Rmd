@@ -7,13 +7,27 @@ Synopsis:
 
 Data Processing
 ```{r data input, cache=TRUE}
-data <- read.csv("data/repdata-data-StormData.csv.bz2")
+data <- read.csv("data/repdata-data-StormData.csv.bz2",
+                 stringsAsFactors = FALSE)
+names(data) <- tolower(names(data))
+data$BGN_DATE <- as.Date(data$BGN_DATE,  "%m/%d/%Y")
+data$evtype <- as.factor(data$evtype)
+data <- cbind(data,
+              data.frame(health = apply(subset(data, select = c(fatalities,
+                                                                injuries)),
+                                        1,
+                                        sum)
+              )
+)
+
 ```
 
 ```{r building working data, cache=TRUE}
-data$BGN_DATE <- as.Date(data$BGN_DATE,  "%m/%d/%Y")
-work <- subset(data, BGN_DATE > as.Date("1991-01-01", "%Y-%m-%d"))
-nrow(work)
+
+work <- subset(data, bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))
+health.impact <- subset(work, health >0, select=c(bgn_date,evtype,health))
 ```
+
+
 Results
 
