@@ -4,13 +4,41 @@ Title
 opts_chunk$set(tidy=FALSE,cache.path="./cache/")
 ```
 Synopsis:
+---------
 
-Data Processing
+Data Processing:
+----------------
+The supplied data file is read into R as a data frame.
 ```{r data input, cache=TRUE}
 data <- read.csv("data/repdata-data-StormData.csv.bz2",
                  stringsAsFactors = FALSE)
 ```
-```{r cleaning data, cache=TRUE}
+The data frame then has a limited amout of andjustments made to it. The scope of the
+changes were confined to values of interest in this study only. As such other values
+were not adjusted. With the exception of the value names, these were adjected in mass
+will all the names to lower case. This adjustment was made to reduce errors in
+programing and processing.
+
+The event begin date (bgn_date) as converted to to a date value and the event type
+was converted to a factor. Then the number of health impacts (deaths and injuries)
+as computed for each event reported. 
+
+Next the property and crop damage multiplier
+field (propdmgexp and cropdmgexp) was cleaned setting the values of H/h (hundreds) to 2,
+K/k (thousands) to 3, M/m (millions) to 6, and B/b (billions) to 9, based on the
+United States of America counting systems for these designations. These fields also
+contained several "*strange*" characters ("+", "?", and "-" ) examining sampling of these records
+provided me with the estimate that 1) there were not many records like this and 2)
+that the narative or event summery provided no other information so these were set to zero
+for this analysis. Finally any null or blank fields were also converted to 0. These
+fields were then converted to a numeric variable.
+
+Using the property damage (propdmg) and the propery damage multiplier the property
+damage value was computed using the formula ${propcash} = {propdmg} * 10 ^ {propdmgexp}$.
+The same approach was used to compute cropcash. The cropcash and propcash values
+were then summed and then devided by a million (1,000,000) and called totalcash_M.
+
+```{r cleaning variable names, setting variable type and working of cost , cache=TRUE}
 names(data) <- tolower(names(data))
 data$bgn_date <- as.Date(data$bgn_date,  "%m/%d/%Y")
 data$evtype <- as.factor(data$evtype)
@@ -58,13 +86,17 @@ data <- cbind(data,
 temp <- data$cropdmg * (10 ^ data$cropdmgexp)
 data <- cbind(data,
               data.frame(cropcash = temp))
-temp <- data$propcash + data$cropcash
+temp <- (data$propcash + data$cropcash)/1000000
 data <- cbind(data,
-              data.frame(totalcash = temp))
+              data.frame(totalcash_M = temp))
 rm(temp)
 ```
-
-```{r more cleaning, cache=TRUE}
+The event type (evtype) factor variable was then cleaned up convert lower case values
+to the same upper case and simular events were reassiged to a common event type,
+such as "GUSTY WINDS" was converted to "WIND", all named Huricannes were converted
+into a single HURICANNE entry. This was done to provide a better picture into the
+cost (both human and financial) of these events.
+```{r cleaning event type, cache=TRUE}
 levels(data$evtype)[levels(data$evtype) == "blowing snow"] <- "BLOWING SNOW"
 levels(data$evtype)[levels(data$evtype) == "Coastal Flooding"] <- "COASTAL FLOOD"
 levels(data$evtype)[levels(data$evtype) == "COASTAL FLOODING"] <- "COASTAL FLOOD"
@@ -218,15 +250,33 @@ levels(data$evtype)[levels(data$evtype) == "WINTER WEATHER/MIX"] <- "WINTER WEAT
 levels(data$evtype)[levels(data$evtype) == "WINTRY MIX"] <- "WINTER WEATHER"
 
 ```
+The complete data set was now devided creating two new data sets with limited
+number of variables. This was done to allow for easier and faster processing 
+of the data.
 
+The data was further subsetted liniting the data to 1 january 1991 or later, giving
+20 years of data. This was done in an attempt to reduce reporting basis and changes
+in reporting metodoligies used by the NAtional Weather Service in the earlier years.
+As severe weather impact reporting developed and new methods of obtaining the data
+were developed this lead to more reports and more types of events to be reported
+through the years. Twenty years was choosen in an attempt to insure that there 
+was enough data to prevent any single event or season from having an over large 
+impact in the results but not going back to far to introduce the earlier data error and
+reporting issues.
 
-```{r building working data, cache=TRUE}
+The human health impact data contains the event beginning date(bgn_date), event type
+(evtype), and number of people injuried or killed (health) data. While the financial
+impact data contains the event beginning date(bgn_date), event type
+(evtype), the property damage in dollars (propdmg), crop damage in dollars (cropdmg),
+and the total damage in millions of dollars(totalcash_M) data.
+
+```{r building working data frames, cache=TRUE}
 health.impact <- subset(data, 
                         ((health >0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                          select=c(bgn_date,evtype,health))
 financial.impact  <- subset(data, 
                             ((totalcash > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
-                            select = c(bgn_date, evtype, propcash, cropcash, totalcash))
+                            select = c(bgn_date, evtype, propcash, cropcash, totalcash_M))
 ```
 
 
