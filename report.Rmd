@@ -5,6 +5,16 @@ opts_chunk$set(tidy=FALSE,cache.path="./cache/")
 ```
 Synopsis:
 ---------
+This analysis was under taken utilizing the U.S. National Oceanic and Atmospheric 
+Administration's National Weather Service’s storm database which contains information 
+on major storms and weather events from January 1950 to November 2011, to explore 
+what types of weather event have the greatest impact on human life (injuries or 
+death) or financial loss. The data from this data base was processed to provide 
+a less granular grouping of the events and to compute the total economic loss, 
+which include both property and crop damage. For the financial impact the report 
+will present a list in descending order of the events that had an average yearly 
+financial impact of over $1,000,000, 000 additionally the top 20 events will be 
+presented graphically. The health impacts will be presented 
 
 Data Processing:
 ----------------
@@ -278,7 +288,20 @@ financial.impact  <- subset(data,
                             ((totalcash > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                             select = c(bgn_date, evtype, propcash, cropcash, totalcash_M))
 ```
-
-
+Using the above subsetted data the impact for each event type are now caculated
+by adding number of people injuried or killed (health) or the total damage cost (totalcash_M)
+for Health and Financial impact respectively.
+```{r caculate cost, cache=TRUE}
+cost.health <- sort(tapply(X=health.impact$health, 
+                           INDEX=list(health.impact$evtype), 
+                           FUN=sum ), 
+                    decreasing = TRUE)
+cost.financial <- sort(tapply(X=financial.impact$totalcash_M, 
+                              INDEX=list(financial.impact$evtype), 
+                              FUN=sum ), 
+                       decreasing = TRUE)
+```
 Results
+-------
+### Population Health Effect from Weather Events
 
