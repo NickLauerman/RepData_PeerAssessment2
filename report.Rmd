@@ -1,4 +1,4 @@
-Title
+Analysis of Severe Weather Events for Impact on the Public Health and The Financial Impact of The Events
 ========================================================
 ```{r workset up, echo=FALSE}
 opts_chunk$set(tidy=FALSE,cache.path="./cache/")
@@ -190,6 +190,7 @@ levels(data$evtype)[levels(data$evtype) == "LIGHTNING INJURY"] <- "LIGHTNING"
 levels(data$evtype)[levels(data$evtype) == "LIGHTNING."] <- "LIGHTNING"
 levels(data$evtype)[levels(data$evtype) == "LOW TEMPERATURE"] <- "COLD"
 levels(data$evtype)[levels(data$evtype) == "MARINE MISHAP"] <- "MARINE ACCIDENT"
+levels(data$evtype)[levels(data$evtype) == "Marine Accident"] <- "MARINE ACCIDENT"
 levels(data$evtype)[levels(data$evtype) == "MARINE STRONG WIND"] <- "MARINE HIGH WIND"
 levels(data$evtype)[levels(data$evtype) == "MARINE THUNDERSTORM WIND"] <- "MARINE THUNDERSTORM WIND"
 levels(data$evtype)[levels(data$evtype) == "MARINE TSTM WIND"] <- "MARINE THUNDERSTORM WIND"
@@ -213,14 +214,15 @@ levels(data$evtype)[levels(data$evtype) == "ROUGH SEAS"] <- "HIGH SEAS"
 levels(data$evtype)[levels(data$evtype) == "ROUGH SURF"] <- "HEAVY SURF"
 levels(data$evtype)[levels(data$evtype) == "SMALL HAIL"] <- "HAIL"
 levels(data$evtype)[levels(data$evtype) == "Snow"] <- "SNOW"
+levels(data$evtype)[levels(data$evtype) == " SNOW"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "SNOW AND ICE"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "SNOW SQUALL"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "Snow Squalls"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "SNOW/ BITTER COLD"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "SNOW/HIGH WINDS"] <- "SNOW"
 levels(data$evtype)[levels(data$evtype) == "STORM SURGE/TIDE"] <- "STORM SURGE"
-levels(data$evtype)[levels(data$evtype) == "STRONG WINDS"] <- "STRONG WIND"
-levels(data$evtype)[levels(data$evtype) == "Strong Winds"] <- "STRONG WIND"
+levels(data$evtype)[levels(data$evtype) == "STRONG WINDS"] <- "HIGH WIND"
+levels(data$evtype)[levels(data$evtype) == "Strong Winds"] <- "HIGH WIND"
 levels(data$evtype)[levels(data$evtype) == "THUNDERSTORM WIND (G40)"] <- "THUNDERSTORM WIND"
 levels(data$evtype)[levels(data$evtype) == "THUNDERSTORM WIND G52"] <- "THUNDERSTORM WIND"
 levels(data$evtype)[levels(data$evtype) == "THUNDERSTORM WINDS"] <- "THUNDERSTORM WIND"
@@ -233,7 +235,7 @@ levels(data$evtype)[levels(data$evtype) == "THUNDERTORM WINDS"] <- "THUNDERSTORM
 levels(data$evtype)[levels(data$evtype) == "TORNADO F2"] <- "TORNADO"
 levels(data$evtype)[levels(data$evtype) == "TORNADO F3"] <- "TORNADO"
 levels(data$evtype)[levels(data$evtype) == "TORNADOES, TSTM WIND, HAIL"] <- "TORNADO"
-levels(data$evtype)[levels(data$evtype) == "Torrential Rainfall"] <- "RAIN"
+levels(data$evtype)[levels(data$evtype) == "Torrential Rainfall"] <- "HEAVY RAIN"
 levels(data$evtype)[levels(data$evtype) == "TROPICAL STORM GORDON"] <- "TROPICAL STORM"
 levels(data$evtype)[levels(data$evtype) == "TSTM WIND"] <- "THUNDERSTORM WIND"
 levels(data$evtype)[levels(data$evtype) == "TSTM WIND (G35)"] <- "THUNDERSTORM WIND"
@@ -258,6 +260,7 @@ levels(data$evtype)[levels(data$evtype) == "WINTER STORMS"] <- "WINTER STORM"
 levels(data$evtype)[levels(data$evtype) == "WINTER WEATHER MIX"] <- "WINTER WEATHER"
 levels(data$evtype)[levels(data$evtype) == "WINTER WEATHER/MIX"] <- "WINTER WEATHER"
 levels(data$evtype)[levels(data$evtype) == "WINTRY MIX"] <- "WINTER WEATHER"
+levels(data$evtype)[levels(data$evtype) == "THUNDERSTORM  WIND"] <- "THUNDERSTORM WIND"
 
 ```
 The complete data set was now devided creating two new data sets with limited
@@ -285,23 +288,28 @@ health.impact <- subset(data,
                         ((health >0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                          select=c(bgn_date,evtype,health))
 financial.impact  <- subset(data, 
-                            ((totalcash > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
+                            ((totalcash_M > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
                             select = c(bgn_date, evtype, propcash, cropcash, totalcash_M))
 ```
 Using the above subsetted data the impact for each event type are now caculated
 by adding number of people injuried or killed (health) or the total damage cost (totalcash_M)
 for Health and Financial impact respectively.
 ```{r caculate cost, cache=TRUE}
+
 cost.health <- sort(tapply(X=health.impact$health, 
                            INDEX=list(health.impact$evtype), 
                            FUN=sum ), 
                     decreasing = TRUE)
-cost.financial <- sort(tapply(X=financial.impact$totalcash_M, 
-                              INDEX=list(financial.impact$evtype), 
-                              FUN=sum ), 
-                       decreasing = TRUE)
+cost.financial.avg <- (sort(tapply(X=financial.impact$totalcash_M, 
+                                   INDEX=list(financial.impact$evtype), 
+                                   FUN=sum ), 
+                            decreasing = TRUE))/20
+
+
+
 ```
 Results
 -------
-### Population Health Effect from Weather Events
+### Financial Effect from Weather Events
+
 
