@@ -13,6 +13,7 @@
 .Rdata
 .Rproj.user
 *.Rproj
+.Rprofile
 
 # compressed/zip files
 *.zip
