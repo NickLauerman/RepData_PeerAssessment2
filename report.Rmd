@@ -1,5 +1,7 @@
 Analysis of Severe Weather Events for Impact on the Public Health and The Financial Impact of The Events
 ========================================================
+1 January 1991 through 30 November 2011
+----------------------------------------
 ```{r workset up, echo=FALSE}
 opts_chunk$set(tidy=FALSE,cache.path="./cache/")
 ```
@@ -57,8 +59,8 @@ data <- cbind(data,
                                                                 injuries)),
                                         1,
                                         sum)
+                         )
               )
-)
 
 # make propdmgexp usable
 data$propdmgexp <- sub("h", "2", data$propdmgexp, ignore.case = TRUE)
@@ -261,7 +263,6 @@ levels(data$evtype)[levels(data$evtype) == "WINTER WEATHER MIX"] <- "WINTER WEAT
 levels(data$evtype)[levels(data$evtype) == "WINTER WEATHER/MIX"] <- "WINTER WEATHER"
 levels(data$evtype)[levels(data$evtype) == "WINTRY MIX"] <- "WINTER WEATHER"
 levels(data$evtype)[levels(data$evtype) == "THUNDERSTORM  WIND"] <- "THUNDERSTORM WIND"
-
 ```
 The complete data set was now devided creating two new data sets with limited
 number of variables. This was done to allow for easier and faster processing 
@@ -274,8 +275,8 @@ As severe weather impact reporting developed and new methods of obtaining the da
 were developed this lead to more reports and more types of events to be reported
 through the years. Twenty years was choosen in an attempt to insure that there 
 was enough data to prevent any single event or season from having an over large 
-impact in the results but not going back to far to introduce the earlier data error and
-reporting issues.
+impact in the results but not going back to far to introduce the earlier data 
+error and reporting issues.
 
 The human health impact data contains the event beginning date(bgn_date), event type
 (evtype), and number of people injuried or killed (health) data. While the financial
@@ -285,31 +286,79 @@ and the total damage in millions of dollars(totalcash_M) data.
 
 ```{r building working data frames, cache=TRUE}
 health.impact <- subset(data, 
-                        ((health >0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
-                         select=c(bgn_date,evtype,health))
+                        ((health >0) & 
+                              (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
+                        select=c(bgn_date,
+                                 evtype,health))
+
 financial.impact  <- subset(data, 
-                            ((totalcash_M > 0) & (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
-                            select = c(bgn_date, evtype, propcash, cropcash, totalcash_M))
+                            ((totalcash_M > 0) & 
+                                  (bgn_date > as.Date("1991-01-01", "%Y-%m-%d"))),
+                            select = c(bgn_date, 
+                                       evtype, 
+                                       propcash, 
+                                       cropcash,
+                                       totalcash_M))
 ```
 Using the above subsetted data the impact for each event type are now caculated
 by adding number of people injuried or killed (health) or the total damage cost (totalcash_M)
 for Health and Financial impact respectively.
 ```{r caculate cost, cache=TRUE}
-
 cost.health <- sort(tapply(X=health.impact$health, 
                            INDEX=list(health.impact$evtype), 
                            FUN=sum ), 
                     decreasing = TRUE)
-cost.financial.avg <- (sort(tapply(X=financial.impact$totalcash_M, 
-                                   INDEX=list(financial.impact$evtype), 
-                                   FUN=sum ), 
-                            decreasing = TRUE))/20
 
+cost.financial <- (sort(tapply(X=financial.impact$totalcash_M, 
+                               INDEX=list(financial.impact$evtype), 
+                               FUN=sum ), 
+                        decreasing = TRUE))
 
-
+cost.financial.avg <- cost.financial/20
 ```
 Results
 -------
-### Financial Effect from Weather Events
+### Financial Effects from Weather Events
 
-
+The financial effects from weather events is presented below the value for each 
+type of event is an annual average for the 20 years studied in millions of dollars
+($1,000,000), and is limited to events with more than $100,000.
+```{r financial table}
+round(cost.financial.avg, digits = 2)[round(cost.financial.avg, digits = 2)>0.1]
+```
+The pie chart shown in the figure below provides a comparison of the  top 10 financial
+events on average over the study period. The bar chart in the figure shows the top
+25 event and indicates a logarithmic  reduction in annual cost.
+```{r financial figures,fig.width=12,fig.height=5}
+par(mfrow=(c(1,2)))
+pie(head(cost.financial.avg, n=10),
+    main = "Top 10 Events Based On Financial Impact",
+    cex = .75)
+barplot(head(cost.financial.avg, n=25),
+        main="Trend of Top 25 Financial Impact Events",
+        ylab = "Yearly Financial Impact in Millions of Dollars",
+        col = "green") 
+par(mfrow=(c(1,1)))
+```
+### Health Effects from Weather Events
+The health effect of severe weather events are listed below. The number presented
+is the total number of people injured or killed due to that event over the entire
+study period. 
+```{r health table}
+cost.health
+```
+The pie chart shown in the figure below provides a comparison of the  top 10 
+event types that caused death or injury. The bar chart in the figure shows the top
+25 of these events and indicates a majority of the health impact happens in a small
+number of the events.
+```{r health figures, fig.width=12, fig.height=5}
+par(mfrow=(c(1,2)))
+pie(head(cost.health, n=10),
+    main = "Top 10 Events Based On Health Impact",
+    cex=0.75)
+barplot(head(cost.health, n=25),
+        main ="Trend of Top 25 Health Impact Events",
+        ylab = "Total Deaths and Injuries",
+        col = "red")
+par(mfrow=(c(1,1)))
+```
